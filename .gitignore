@@ -1,0 +1,28 @@
+# OS
+.DS_Store
+
+# data & test
+*.json
+*.csv
+*.hdf
+*.txt
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.py-e
+
+# C extensions
+*.so
+
+# User-specific stuff:
+*.idea
+.idea/
+
+#just for test
+
+
+#result of experiment
+
+
