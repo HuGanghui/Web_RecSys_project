@@ -14,22 +14,11 @@ import pandas as pd
 import configparser
 import sys
 
-def city_sorted(file_path):
-    city_dict = {}
-    with open(file_path) as f:
-        for line in f:
-            a = json.loads(line)
-            if a["city"] in city_dict:
-                city_dict[a["city"]] += 1
-            else:
-                city_dict[a["city"]] = 1
-    sorted_city_dict = sorted(city_dict, key=city_dict.__getitem__, reverse=True)
-    with open("./result_city_sorted.txt", "w") as out:
-        for city in sorted_city_dict:
-            out.write(city + " : " + str(city_dict[city]) + "\n")
 
-
-class SampleFromJsonData(multiprocessing.Process):
+class SampleCityFromJsonData(multiprocessing.Process):
+    """
+    将原始数据按城市进行划分处理，提供多进程
+    """
     def __init__(self, processing_name, in_dir_path, out_dir_path, city_name):
         multiprocessing.Process.__init__(self)
         self.processing_name = processing_name
@@ -41,6 +30,7 @@ class SampleFromJsonData(multiprocessing.Process):
         # BUSINESS.JSON
         business_data = []
         print('Reading business.json')
+        # TODO 这里可以之间pd.read_json
         with open(in_file_path) as f:
             for line in f:
                 business_data.append(json.loads(line))
@@ -141,9 +131,7 @@ class SampleFromJsonData(multiprocessing.Process):
 
     def run(self):
         print("开始进程：" + self.processing_name)
-        business_file = self.in_dir_path + "/yelp_academic_dataset_business.json"
-        business_sample_file = self.out_dir_path + "/" + self.city_name + "_business.json"
-        self._sample_from_business(business_file, business_sample_file)
+        self.sample()
         print("退出进程：" + self.processing_name)
 
 
@@ -155,12 +143,10 @@ if __name__ == '__main__':
 
     # test msample_from_business
     conf = configparser.ConfigParser()
-    conf.read("./config.ini", encoding='utf-8')
+    conf.read("../config.ini", encoding='utf-8')
     in_dir_path = conf.get("path", "in_dir_path")
     out_dir_path = conf.get("path", "out_dir_path")
-    # in_dir_path = os.path.dirname(os.path.dirname(__file__))
-    # out_dir_path = "."
     for idx, city_name in enumerate(sys.argv[1:]):
-        # 创建新线程
-        process = SampleFromJsonData("Processing-" + str(idx), in_dir_path, out_dir_path, city_name)
+        # 创建新进程
+        process = SampleCityFromJsonData("Processing-" + str(idx), in_dir_path, out_dir_path, city_name)
         process.start()
