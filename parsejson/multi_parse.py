@@ -8,12 +8,11 @@
 # ------------      -------    --------    -----------
 # 2019/12/3 9:10 PM   hgh      1.0         None
 import json
-import threading
+import multiprocessing
 import time
 import pandas as pd
-import numpy as np
 import configparser
-
+import sys
 
 def city_sorted(file_path):
     city_dict = {}
@@ -30,8 +29,10 @@ def city_sorted(file_path):
             out.write(city + " : " + str(city_dict[city]) + "\n")
 
 
-class SampleFromJsonData:
-    def __init__(self, in_dir_path, out_dir_path, city_name):
+class SampleFromJsonData(multiprocessing.Process):
+    def __init__(self, processing_name, in_dir_path, out_dir_path, city_name):
+        multiprocessing.Process.__init__(self)
+        self.processing_name = processing_name
         self.in_dir_path = in_dir_path
         self.out_dir_path = out_dir_path
         self.city_name = city_name
@@ -138,6 +139,13 @@ class SampleFromJsonData:
         self._sample_from_tip(tip_file, tip_sample_file)
         self._sample_from_checkin(checkin_file, checkin_sample_file)
 
+    def run(self):
+        print("开始进程：" + self.processing_name)
+        business_file = self.in_dir_path + "/yelp_academic_dataset_business.json"
+        business_sample_file = self.out_dir_path + "/" + self.city_name + "_business.json"
+        self._sample_from_business(business_file, business_sample_file)
+        print("退出进程：" + self.processing_name)
+
 
 if __name__ == '__main__':
     # test city_sorted
@@ -152,10 +160,7 @@ if __name__ == '__main__':
     out_dir_path = conf.get("path", "out_dir_path")
     # in_dir_path = os.path.dirname(os.path.dirname(__file__))
     # out_dir_path = "."
-    city_name = "Beeton"
-
-    sample = SampleFromJsonData(in_dir_path, out_dir_path, city_name)
-    start_time = time.time()
-    sample.sample()
-    end_time = time.time()
-    print(end_time - start_time)
+    for idx, city_name in enumerate(sys.argv[1:]):
+        # 创建新线程
+        process = SampleFromJsonData("Processing-" + str(idx), in_dir_path, out_dir_path, city_name)
+        process.start()
