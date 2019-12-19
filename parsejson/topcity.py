@@ -29,3 +29,10 @@ def city_sorted(file_path):
         for city in sorted_city_dict:
             out.write(city + " : " + str(city_dict[city]) + "\n")
 
+
+if __name__ == '__main__':
+    # test city_sorted
+    # dir = os.path.dirname(os.path.dirname(__file__))
+    # business_file = dir + "/yelp_academic_dataset_business.json"
+    # city_sorted(business_file)
+    pass

@@ -12,6 +12,8 @@ import pandas as pd
 import numpy as np
 from surprise import accuracy
 from surprise.model_selection import cross_validate, KFold, GridSearchCV
+import datetime
+import pickle
 
 
 class MultiAlgo(multiprocessing.Process):
@@ -33,7 +35,9 @@ class MultiAlgo(multiprocessing.Process):
         gs = GridSearchCV(self.algo, self.param_grid, measures=['rmse', 'mae'], cv=5)
         print(str(self.algo))
         gs.fit(self.data)
-        with open(self.result_dir_path + "/" + self.name + "_performace.txt", "w") as f:
+        with open(self.result_dir_path + "/" + self.name + "_performace.txt", "a") as f:
+            start_time = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + '\n')
+            f.write(start_time)
             # best RMSE score
             f.write("best_rmse: %f" % gs.best_score['rmse'] + "\n")
             # combination of parameters that gave the best RMSE score
@@ -49,8 +53,13 @@ class MultiAlgo(multiprocessing.Process):
         test_true = np.asarray([pred[i][2] for i in range(len(pred))])
         test_pred = np.asarray([pred[i][3] for i in range(len(pred))])
         with open(self.result_dir_path + "/" + self.name + "_performace.txt", "a") as f:
-            f.write("test_set's rmse :" + str(np.sqrt(np.mean(np.square(test_true-test_pred)))))
+            f.write("test_set's rmse :" + str(np.sqrt(np.mean(np.square(test_true-test_pred)))) + "\n")
         accuracy.rmse(pred)
+        # 预测结果持久化
+        print('进行持久化')
+        with open(self.result_dir_path + "/" + self.name + '_predict_result', 'wb') as f:
+            result = {"pred": test_pred}
+            pickle.dump(result, f)
 
     def run(self):
         print("开始进程：" + self.processing_name)

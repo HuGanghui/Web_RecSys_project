@@ -136,11 +136,6 @@ class SampleCityFromJsonData(multiprocessing.Process):
 
 
 if __name__ == '__main__':
-    # test city_sorted
-    # dir = os.path.dirname(os.path.dirname(__file__))
-    # business_file = dir + "/yelp_academic_dataset_business.json"
-    # city_sorted(business_file)
-
     # test msample_from_business
     conf = configparser.ConfigParser()
     conf.read("../config.ini", encoding='utf-8')

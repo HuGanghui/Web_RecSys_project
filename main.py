@@ -19,6 +19,7 @@ from utility.split import Split
 
 
 if __name__ == '__main__':
+    # 获取数据路径
     conf = configparser.ConfigParser()
     conf.read("./config.ini", encoding='utf-8')
     review_file_path = conf.get("path", "review_file_path")
@@ -26,20 +27,20 @@ if __name__ == '__main__':
     # review_file_path2 = conf.get("path", "review_file_path2")
     result_dir_path = conf.get("path", "result_dir_path")
     review_pd = pd.read_json(review_file_path1, lines=True)
-
     print(review_pd.shape)
+    # 获取数据
     review_pd = review_pd.loc[:, ["user_id", "business_id", "stars"]]
+    # 进行切分
     split = Split(review_pd)
     train_set, test_set = split.split()
     reader = Reader(rating_scale=(1, 5))
-    data = Dataset.load_from_df(review_pd, reader)
+    train_data = Dataset.load_from_df(train_set, reader)
     test_data = Dataset.load_from_df(test_set, reader)
+    # 算法模型，并进行参数选择
     classes = (SVD, SVD, SVDpp, NMF, NMF, KNNBasic, KNNWithMeans, KNNBaseline,
                KNNWithZScore, CoClustering)
     names = ("pure_SVD", "biased_SVD", "SVDpp", "pure_NMF", "biased_NMF", "KNNBasic", "KNNWithMeans",
              "KNNBaseline", "KNNWithZScore", "CoClustering")
-    test_SVD_param_grid = {"n_factors": [3], "n_epochs": [30], "biased": [True],
-                           "lr_all": [0.002], "reg_all": [0.02]}
     pure_SVD_param_grid = {"n_factors": [3, 5, 10, 15], "n_epochs": [10, 20, 30], "biased": [False],
                            "lr_all": [0.002, 0.005], "reg_all": [0.02, 0.04, 0.06]}
     biased_SVD_param_grid = {"n_factors": [3, 5, 10, 15], "n_epochs": [10, 20, 30], "biased": [True],
@@ -59,14 +60,17 @@ if __name__ == '__main__':
                   biased_NMF_param_grid, KNN_param_grid, KNN_param_grid, KNN_param_grid, KNN_param_grid,
                   CoClustering_param_grid)
 
-    # 使用训练集进行网格搜索后获取最优的参数
-    for i in np.arange(len(classes)):
-        process = MultiAlgo("Processing-" + str(i), classes[i], param_grid[i], data, test_data, result_dir_path, names[i])
-        process.start()
+    # # 使用训练集进行网格搜索后获取最优的参数,并用最优参数在测试集上测试
+    # for i in np.arange(len(classes)):
+    #     process = MultiAlgo("Processing-" + str(i), classes[i], param_grid[i], data, test_data, result_dir_path, names[i])
+    #     process.start()
 
     # 单个进行测试
-    # process = MultiAlgo("Provessing-" + str(1), classes[1], test_SVD_param_grid, data, test_data, result_dir_path, "test_SVD")
-    # process.start()
+    test_SVD_param_grid = {"n_factors": [3], "n_epochs": [30], "biased": [True],
+                           "lr_all": [0.002], "reg_all": [0.02]}
+    test_model = SVD
+    process = MultiAlgo("Provessing-" + str(1), test_model, test_SVD_param_grid, train_data, test_data, result_dir_path, "test_SVD")
+    process.start()
 
 
 
