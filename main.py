@@ -8,6 +8,8 @@
 # ------------      -------    --------    -----------
 # 2019/12/12 11:06 PM   hgh      1.0         None
 import configparser
+import os
+import pickle
 
 import pandas as pd
 from surprise import SVD, Reader, Dataset, SVDpp, NMF, KNNBasic, KNNWithMeans, KNNBaseline, KNNWithZScore, CoClustering
@@ -33,6 +35,12 @@ if __name__ == '__main__':
     # 进行切分
     split = Split(review_pd)
     train_set, test_set = split.split()
+    test_label_file = result_dir_path + "/" + "test_label"
+    # 对test_set 标签进行持久化，为后续esamble准备
+    if not os.path.exists(test_label_file):
+        with open(test_label_file, 'wb') as f:
+            pickle.dump(test_set["stars"].values, f)
+    test_label = test_set["stars"].values
     reader = Reader(rating_scale=(1, 5))
     train_data = Dataset.load_from_df(train_set, reader)
     test_data = Dataset.load_from_df(test_set, reader)
@@ -61,16 +69,21 @@ if __name__ == '__main__':
                   CoClustering_param_grid)
 
     # # 使用训练集进行网格搜索后获取最优的参数,并用最优参数在测试集上测试
-    # for i in np.arange(len(classes)):
-    #     process = MultiAlgo("Processing-" + str(i), classes[i], param_grid[i], data, test_data, result_dir_path, names[i])
-    #     process.start()
+    for i in np.arange(5):
+        process = MultiAlgo("Processing-" + str(i), classes[i], param_grid[i], train_data, test_data, result_dir_path, names[i])
+        process.start()
 
     # 单个进行测试
-    test_SVD_param_grid = {"n_factors": [3], "n_epochs": [30], "biased": [True],
-                           "lr_all": [0.002], "reg_all": [0.02]}
-    test_model = SVD
-    process = MultiAlgo("Provessing-" + str(1), test_model, test_SVD_param_grid, train_data, test_data, result_dir_path, "test_SVD")
-    process.start()
+    # test_SVD_param_grid = {"n_factors": [3], "n_epochs": [30], "biased": [True],
+    #                        "lr_all": [0.002], "reg_all": [0.02]}
+    # test_name = "test_svd"
+    #
+    # test_pure_SVD_param_grid = {"n_factors": [3], "n_epochs": [30], "biased": [False],
+    #                        "lr_all": [0.002], "reg_all": [0.02]}
+    # test_name1 = "test_pure_svd"
+    # test_model = SVD
+    # process = MultiAlgo("Provessing-" + str(1), test_model, test_pure_SVD_param_grid, train_data, test_data, result_dir_path, test_name1)
+    # process.start()
 
 
 

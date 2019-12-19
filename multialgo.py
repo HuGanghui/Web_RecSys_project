@@ -15,6 +15,8 @@ from surprise.model_selection import cross_validate, KFold, GridSearchCV
 import datetime
 import pickle
 
+from utility.util import rmse
+
 
 class MultiAlgo(multiprocessing.Process):
     """
@@ -53,7 +55,7 @@ class MultiAlgo(multiprocessing.Process):
         test_true = np.asarray([pred[i][2] for i in range(len(pred))])
         test_pred = np.asarray([pred[i][3] for i in range(len(pred))])
         with open(self.result_dir_path + "/" + self.name + "_performace.txt", "a") as f:
-            f.write("test_set's rmse :" + str(np.sqrt(np.mean(np.square(test_true-test_pred)))) + "\n")
+            f.write("test_set's rmse :" + str(rmse(test_true, test_pred)) + "\n")
         accuracy.rmse(pred)
         # 预测结果持久化
         print('进行持久化')
