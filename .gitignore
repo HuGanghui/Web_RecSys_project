@@ -24,5 +24,7 @@ __pycache__/
 
 
 #result of experiment
+result
+!result/test_*
 
 

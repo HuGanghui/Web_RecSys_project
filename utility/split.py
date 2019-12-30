@@ -19,6 +19,15 @@ class Split:
     训练集和测试集，而不是像Spurise库那样的随机划分，可以很好的解决冷启动的问题
     划分比例通过test_size来控制，filter_threshold用来过滤掉只有少量review信息的
     用户，默认用户至少要有2条review信息
+
+    Parameters
+    ----------
+    data : pandas.DataFrame, 数据集
+    filter_threshold : int, optional (deafult=1)
+        用于过滤只有少量review信息的用户，默认用户至少要有2条review信息
+    test_size : float, optional (default=0.2)
+        切分后的测试集比例大小
+
     """
     def __init__(self, data, filter_threshold=1, test_size=0.2):
         self.data = data
@@ -53,8 +62,13 @@ class Split:
     def _split(self, test_size=0.2):
         """
         split dataset that user_id as label, train_size = 0.8, test_size = 0.2
-        :param test_size: int
-        :return:
+
+        Parameters
+        ----------
+        test_size : int
+
+        Returns
+        -------
         train_set: pandas.DataFrame
         test_set: pandas.DataFrame
         """
@@ -80,10 +94,10 @@ if __name__ == '__main__':
     # example
     conf = configparser.ConfigParser()
     conf.read("../config.ini", encoding='utf-8')
-    review_file_path = conf.get("path", "review_file_path")
-    # review_file_path1 = conf.get("path", "review_file_path1")
+    # review_file_path = conf.get("darwin_path", "review_file_path")
+    review_file_path1 = conf.get("darwin_path", "review_file_path1")
     # review_file_path2 = conf.get("path", "review_file_path2")
-    review_pd = pd.read_json(review_file_path, lines=True)
+    review_pd = pd.read_json("." + review_file_path1, lines=True)
     print(review_pd.shape)
     review_pd = review_pd.loc[:, ["user_id", "business_id", "stars"]]
     split = Split(review_pd)

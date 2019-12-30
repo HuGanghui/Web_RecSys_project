@@ -139,8 +139,8 @@ if __name__ == '__main__':
     # test msample_from_business
     conf = configparser.ConfigParser()
     conf.read("../config.ini", encoding='utf-8')
-    in_dir_path = conf.get("path", "in_dir_path")
-    out_dir_path = conf.get("path", "out_dir_path")
+    in_dir_path = conf.get("darwin_path", "in_dir_path")
+    out_dir_path = conf.get("darwin_path", "out_dir_path")
     for idx, city_name in enumerate(sys.argv[1:]):
         # 创建新进程
         process = SampleCityFromJsonData("Processing-" + str(idx), in_dir_path, out_dir_path, city_name)

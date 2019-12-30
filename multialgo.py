@@ -20,23 +20,46 @@ from utility.util import rmse
 
 class MultiAlgo(multiprocessing.Process):
     """
-    进行算法模型参数选择，开启多进程模型，每个算法模型都开启一个进程，并在result目录下输出每个算法模型的结果
+    进行算法模型参数选择，开启多进程模型，每个算法模型都开启一个进程，并在result_dir_path目录下输出每个算法模型的结果
+
+    Parameters
+    ----------
+    algo : class, surprise实现的算法模型
+
+    param_grid : dict, algo对应的超参数字典
+
+    train_data : Dataset, surprise中实现的Dataset实例
+
+    test_data : Dataset, surprise中实现的Dataset实例
+
+    result_dir_path : String, 输出的结果目录
+
+    name : String, 算法名称
+
+    processing_name : 进程名称
+
+    Attributes
+    ----------
+    best_model : (dict of AlgoBase)
+        Using an accuracy measure as key, get the algorithm that gave the
+        best accuracy results for the chosen measure, averaged over all
+        splits.
+
     """
     def __init__(self, processing_name, algo, param_grid, train_data, test_data, result_dir_path, name):
         multiprocessing.Process.__init__(self)
         self.algo = algo
         self.param_grid = param_grid
-        self.data = train_data
+        self.train_data = train_data
         self.test_data = test_data
         self.result_dir_path = result_dir_path
         self.name = name
         self.processing_name = processing_name
-        self.best_model = None
 
-    def single_algo_test(self):
+    def _single_algo_test(self):
         gs = GridSearchCV(self.algo, self.param_grid, measures=['rmse', 'mae'], cv=5)
         print(str(self.algo))
-        gs.fit(self.data)
+        gs.fit(self.train_data)
         with open(self.result_dir_path + "/" + self.name + "_performace.txt", "a") as f:
             start_time = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + '\n')
             f.write(start_time)
@@ -48,7 +71,7 @@ class MultiAlgo(multiprocessing.Process):
         self._best_model_predict()
 
     def _best_model_predict(self):
-        self.best_model.fit(self.data.build_full_trainset())
+        self.best_model.fit(self.train_data.build_full_trainset())
         raw_testset = [self.test_data.raw_ratings[i] for i in np.arange(len(self.test_data.raw_ratings))]
         test_data = self.test_data.construct_testset(raw_testset)
         pred = self.best_model.test(test_data)
@@ -65,7 +88,7 @@ class MultiAlgo(multiprocessing.Process):
 
     def run(self):
         print("开始进程：" + self.processing_name)
-        self.single_algo_test()
+        self._single_algo_test()
         print("退出进程：" + self.processing_name)
 
 
