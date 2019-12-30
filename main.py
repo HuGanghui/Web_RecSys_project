@@ -79,17 +79,6 @@ if __name__ == '__main__':
         process = MultiAlgo("Processing-" + str(i), classes[i], param_grid[i], train_data, test_data, result_dir_path, names[i])
         process.start()
 
-    # 单个进行测试
-    # test_SVD_param_grid = {"n_factors": [3], "n_epochs": [30], "biased": [True],
-    #                        "lr_all": [0.002], "reg_all": [0.02]}
-    # test_name = "test_svd"
-    #
-    # test_pure_SVD_param_grid = {"n_factors": [3], "n_epochs": [30], "biased": [False],
-    #                        "lr_all": [0.002], "reg_all": [0.02]}
-    # test_name1 = "test_pure_svd"
-    # test_model = SVD
-    # process = MultiAlgo("Provessing-" + str(1), test_model, test_pure_SVD_param_grid, train_data, test_data, result_dir_path, test_name1)
-    # process.start()
 
 
 
