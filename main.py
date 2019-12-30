@@ -42,15 +42,19 @@ if __name__ == '__main__':
     # 进行切分
     split = Split(review_pd)
     train_set, test_set = split.split()
+    reader = Reader(rating_scale=(1, 5))
+    train_data = Dataset.load_from_df(train_set, reader)
+    test_data = Dataset.load_from_df(test_set, reader)
+    # 对train_set, test_set 标签进行持久化，为后续esamble准备
     test_label_file = result_dir_path + "/" + "test_label"
-    # 对test_set 标签进行持久化，为后续esamble准备
     if not os.path.exists(test_label_file):
         with open(test_label_file, 'wb') as f:
             pickle.dump(test_set["stars"].values, f)
     test_label = test_set["stars"].values
-    reader = Reader(rating_scale=(1, 5))
-    train_data = Dataset.load_from_df(train_set, reader)
-    test_data = Dataset.load_from_df(test_set, reader)
+    train_label_file = result_dir_path + "/" + "train_label"
+    if not os.path.exists(train_label_file):
+        with open(train_label_file, 'wb') as f:
+            pickle.dump(train_set["stars"].values, f)
     # 算法模型，并进行参数选择
     classes = (SVD, SVD, SVDpp, NMF, NMF, KNNBasic, KNNWithMeans, KNNBaseline,
                KNNWithZScore, CoClustering)
@@ -58,16 +62,17 @@ if __name__ == '__main__':
              "KNNBaseline", "KNNWithZScore", "CoClustering")
     pure_SVD_param_grid = {"n_factors": [3, 5, 10, 15], "n_epochs": [10, 20, 30], "biased": [False],
                            "lr_all": [0.002, 0.005], "reg_all": [0.02, 0.04, 0.06]}
-    biased_SVD_param_grid = {"n_factors": [3, 5, 10, 15], "n_epochs": [10, 20, 30], "biased": [True],
-                             "lr_all": [0.002, 0.005], "reg_all": [0.02, 0.04, 0.06]}
-    SVDpp_param_grid = {"n_factors": [3, 5, 10], "n_epochs": [10, 20],
-                        "lr_all": [0.002, 0.005], "reg_all": [0.02, 0.04]}
+    # 这已经是选出来的最好的参数了，目前是因为需求再跑一些，就不选择了，下面只有一组参数的同理
+    biased_SVD_param_grid = {"n_factors": [3], "n_epochs": [30], "biased": [True],
+                             "lr_all": [0.005], "reg_all": [0.06]}
+    SVDpp_param_grid = {"n_factors": [3], "n_epochs": [20],
+                        "lr_all": [0.005], "reg_all": [0.04]}
     pure_NMF_param_grid = {"n_factors": [3, 5, 10], "n_epochs": [10, 20], "biased": [False],
                            "reg_pu": [0.04, 0.06], "reg_qi": [0.04, 0.06]}
-    biased_NMF_param_grid = {"n_factors": [3, 5, 10], "n_epochs": [10, 20], "biased": [True],
-                             "reg_pu": [0.04, 0.06], "reg_qi": [0.04, 0.06], "reg_bu": [0.02, 0.04],
-                             "reg_bi": [0.02, 0.04], "lr_bu": [0.004, 0.005],
-                             "lr_bi": [0.004, 0.005]}
+    biased_NMF_param_grid = {"n_factors": [3], "n_epochs": [10], "biased": [True],
+                             "reg_pu": [0.06], "reg_qi": [0.06], "reg_bu": [0.04],
+                             "reg_bi": [0.02], "lr_bu": [0.005],
+                             "lr_bi": [0.005]}
     KNN_param_grid = {"k": [20], "sim_options": {'name': ["msd"], "user_based": [True]}}
     CoClustering_param_grid = {"n_cltr_u": [3, 5, 7, 10], "n_cltr_i": [3, 5, 7, 10], "n_epochs": [10, 20, 30]}
     param_grid = (pure_SVD_param_grid, biased_SVD_param_grid, SVDpp_param_grid, pure_NMF_param_grid,
@@ -75,9 +80,9 @@ if __name__ == '__main__':
                   CoClustering_param_grid)
 
     # 使用训练集进行网格搜索后获取最优的参数,并用最优参数在测试集上测试
-    for i in np.arange(5,7,1):
-        process = MultiAlgo("Processing-" + str(i), classes[i], param_grid[i], train_data, test_data, result_dir_path, names[i])
-        process.start()
+    # for i in [1, 2, 4]:
+    #     process = MultiAlgo("Processing-" + str(i), classes[i], param_grid[i], train_data, test_data, result_dir_path, names[i])
+    #     process.start()
 
 
 

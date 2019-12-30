@@ -61,8 +61,8 @@ class MultiAlgo(multiprocessing.Process):
         print(str(self.algo))
         gs.fit(self.train_data)
         with open(self.result_dir_path + "/" + self.name + "_performace.txt", "a") as f:
-            start_time = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + '\n')
-            f.write(start_time)
+            self.start_time = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + '\n')
+            f.write(self.start_time)
             # best RMSE score
             f.write("best_rmse: %f" % gs.best_score['rmse'] + "\n")
             # combination of parameters that gave the best RMSE score
@@ -70,20 +70,34 @@ class MultiAlgo(multiprocessing.Process):
         self.best_model = gs.best_estimator["rmse"]
         self._best_model_predict()
 
-    def _best_model_predict(self):
-        self.best_model.fit(self.train_data.build_full_trainset())
-        raw_testset = [self.test_data.raw_ratings[i] for i in np.arange(len(self.test_data.raw_ratings))]
-        test_data = self.test_data.construct_testset(raw_testset)
-        pred = self.best_model.test(test_data)
+    def _processing_for_test(self, data):
+        # 这里需要对test_data 进行一下处理，才能进行预测
+        raw_testset = [data.raw_ratings[i] for i in np.arange(len(data.raw_ratings))]
+        data = data.construct_testset(raw_testset)
+        pred = self.best_model.test(data)
+        accuracy.rmse(pred)
         test_true = np.asarray([pred[i][2] for i in range(len(pred))])
         test_pred = np.asarray([pred[i][3] for i in range(len(pred))])
+        return test_true, test_pred
+
+    def _best_model_predict(self):
+        self.best_model.fit(self.train_data.build_full_trainset())
+        # test_data
+        test_true, test_pred = self._processing_for_test(self.test_data)
         with open(self.result_dir_path + "/" + self.name + "_performace.txt", "a") as f:
             f.write("test_set's rmse :" + str(rmse(test_true, test_pred)) + "\n")
-        accuracy.rmse(pred)
+        # train_data
+        train_true, train_pred = self._processing_for_test(self.train_data)
+        with open(self.result_dir_path + "/" + self.name + "_train_performace.txt", "a") as f:
+            f.write(self.start_time)
+            f.write("train_set's rmse :" + str(rmse(train_true, train_pred)) + "\n")
         # 预测结果持久化
         print('进行持久化')
         with open(self.result_dir_path + "/" + self.name + '_predict_result', 'wb') as f:
             result = {"pred": test_pred}
+            pickle.dump(result, f)
+        with open(self.result_dir_path + "/" + self.name + '_train_predict_result', 'wb') as f:
+            result = {"pred": train_pred}
             pickle.dump(result, f)
 
     def run(self):
