@@ -1,5 +1,7 @@
 ## Web RecSys Project 
 
+[![Build Status](https://travis-ci.org/HuGanghui/Web_RecSys_project.svg?branch=v1.0)](https://travis-ci.org/HuGanghui/Web_RecSys_project)
+
 使用版本 python 3.6
 
 代码框架：
