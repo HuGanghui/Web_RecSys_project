@@ -4,9 +4,6 @@
 ![PythonVersion](https://img.shields.io/badge/python-3.6-blue)
 ![PullRequest](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
 
-
-使用版本 python 3.6
-
 代码框架：
 * main.py 使用训练集进行网格搜索后获取最优的参数,然后在测试集上进行测试，并在result目录输出测试结果，以及每个模型的持久化的预测分数
 * esamble_main.py 加载多个模型的预测分数，进行集成的主函数
