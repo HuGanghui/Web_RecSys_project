@@ -1,6 +1,7 @@
 ## Web RecSys Project 
 
 [![Build Status](https://travis-ci.org/HuGanghui/Web_RecSys_project.svg?branch=v1.0)](https://travis-ci.org/HuGanghui/Web_RecSys_project)
+![PythonVersion](https://img.shields.io/badge/python-3.6-blue)
 ![PullRequest](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
 
 
